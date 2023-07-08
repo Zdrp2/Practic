@@ -6,8 +6,6 @@
 #include <QPainter>
 #include <QGraphicsScene>
 
-#include "food.h"
-
 class Bacterium : public QGraphicsEllipseItem
 {
 public:
@@ -23,7 +21,9 @@ public:
 private:
     qreal angle = 0;
     qreal speed = 0;
+    int foodCount = 0;
     QColor color;
+
 };
 
 #endif // BACTERIUM_H

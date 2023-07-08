@@ -22,11 +22,14 @@ public:
 private slots:
     void on_pushButton_clicked();
 
+    void on_pushButton_2_clicked();
+
 private:
     QGraphicsScene *scene;
     Bacterium *bacterium;
     Food* food;
     QTimer timer; // Объект таймера объявлен как член класса
+    QTimer timerFood;
     Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H

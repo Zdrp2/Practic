@@ -79,23 +79,49 @@ void Bacterium::advance(int phase)
                                                              << mapToScene(-30, -50)
                                                              << mapToScene(30, -50));
 
-    for (const QGraphicsItem *item : dangerMice) {
-        if (item == this)
-            continue;
+    for (QGraphicsItem *item : dangerMice) {
+        if (item != this && !dynamic_cast<Bacterium*>(item))
+        {
+            QLineF lineToMouse(QPointF(0, 0), mapFromItem(item, 0, 0));
+            qreal angleToMouse = std::atan2(lineToMouse.dy(), lineToMouse.dx());
+            angleToMouse = normalizeAngle((Pi - angleToMouse) + Pi / 2);
 
-        QLineF lineToMouse(QPointF(0, 0), mapFromItem(item, 0, 0));
-        qreal angleToMouse = std::atan2(lineToMouse.dy(), lineToMouse.dx());
-        angleToMouse = normalizeAngle((Pi - angleToMouse) + Pi / 2);
+            if (angleToMouse >= 0 && angleToMouse < Pi / 2) {
+                // Rotate right
+                angle -= 0.5;
+            } else if (angleToMouse <= TwoPi && angleToMouse > (TwoPi - Pi / 2)) {
+                // Rotate left
+                angle += 0.5;
+            }
+            if (collidesWithItem(item)) {
+                // Remove the item from the scene
+                delete item;
+                foodCount++;
+            }
 
-        if (angleToMouse >= 0 && angleToMouse < Pi / 2) {
-            // Rotate right
-            angle += 0.5;
-        } else if (angleToMouse <= TwoPi && angleToMouse > (TwoPi - Pi / 2)) {
-            // Rotate left
-            angle -= 0.5;
-            //! [7] //! [8]
+            if (foodCount == 3) {
+                // Создаем новую бактерию
+                Bacterium *newBacterium = new Bacterium();
+                scene()->addItem(newBacterium);
+                newBacterium->setPos(pos());
+
+                // Сбрасываем счетчик съеденной еды
+                foodCount = 0;
+            }
         }
-        //! [8] //! [9]
+        else {
+            QLineF lineToMouse(QPointF(0, 0), mapFromItem(item, 0, 0));
+            qreal angleToMouse = std::atan2(lineToMouse.dy(), lineToMouse.dx());
+            angleToMouse = normalizeAngle((Pi - angleToMouse) + Pi / 2);
+
+            if (angleToMouse >= 0 && angleToMouse < Pi / 2) {
+                // Rotate right
+                angle += 0.5;
+            } else if (angleToMouse <= TwoPi && angleToMouse > (TwoPi - Pi / 2)) {
+                // Rotate left
+                angle -= 0.5;
+            }
+        }
     }
     //! [9]
 
@@ -117,7 +143,6 @@ void Bacterium::advance(int phase)
     setRotation(rotation() + dx);
     setPos(mapToParent(0, -(3 + sin(speed) * 3)));
 
-
     // Ограничение перемещения по горизонтали
     qreal xPos = pos().x();
     qreal yPos = pos().y();
@@ -137,5 +162,4 @@ void Bacterium::advance(int phase)
         setPos(pos().x(), scene()->height());
         angle = Pi;
     }
-
 }
