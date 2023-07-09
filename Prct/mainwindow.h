@@ -6,6 +6,7 @@
 
 #include "bacterium.h"
 #include "food.h"
+#include "predator.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

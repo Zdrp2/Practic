@@ -21,6 +21,8 @@ set(PROJECT_SOURCES
         bacterium.h
         food.h
         food.cpp
+        predator.h
+        predator.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

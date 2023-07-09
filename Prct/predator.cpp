@@ -1,4 +1,4 @@
-#include "bacterium.h"
+#include "predator.h"
 
 constexpr qreal Pi = M_PI;
 constexpr qreal TwoPi = 2 * M_PI;
@@ -12,44 +12,68 @@ static qreal normalizeAngle(qreal angle)
     return angle;
 }
 
-Bacterium::Bacterium() : color(QRandomGenerator::global()->bounded(256),
-            QRandomGenerator::global()->bounded(256),
-            QRandomGenerator::global()->bounded(256))
+Predator::Predator()
 {
     setRotation(QRandomGenerator::global()->bounded(360 * 16));
 }
 
-QRectF Bacterium::boundingRect() const
+QRectF Predator::boundingRect() const
 {
     qreal adjust = 0.5;
     return QRectF(-18 - adjust, -22 - adjust,
                   36 + adjust, 60 + adjust);
 }
 
-QPainterPath Bacterium::shape() const
+QPainterPath Predator::shape() const
 {
     QPainterPath path;
     path.addRect(-10, -20, 20, 40);
     return path;
 }
 
-void Bacterium::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void Predator::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    // Установите кисть с градиентом в качестве фона
+    QLinearGradient gradient(-5, -10, 5, 10);
+    gradient.setColorAt(0, Qt::darkGray);
+    gradient.setColorAt(1, Qt::black);
+    painter->setBrush(gradient);
 
-    painter->setPen(Qt::black);
-    painter->setBrush(color);
+    // Нарисуйте эллипс с градиентным фоном
     painter->drawEllipse(-5, -10, 10, 20);
 
+    // Нарисуйте глаза
+    painter->setBrush(Qt::white);
+    painter->drawEllipse(-3, -8, 2, 4);
+    painter->drawEllipse(1, -8, 2, 4);
+
+    // Нарисуйте зубы
+    painter->setBrush(Qt::white);
+    painter->drawPolygon(QPolygonF() << QPointF(-2, 0) << QPointF(2, 0) << QPointF(0, -5));
+
+    // Нарисуйте рога
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(Qt::darkGray);
+    painter->drawEllipse(-8, -18, 3, 8);
+    painter->drawEllipse(5, -18, 3, 8);
+
     // Рисуем усики
+    painter->setPen(Qt::black);
+    painter->setBrush(Qt::NoBrush);
     painter->drawLine(0, -10, -5, -15);
     painter->drawLine(0, -10, 5, -15);
 }
 
-void Bacterium::advance(int phase)
+void Predator::setChance(int c)
+{
+    chance = c;
+}
+
+
+void Predator::advance(int phase)
 {
     if (!phase)
         return;
-
     //! [4]
     // Don't move too far away
     //! [5]
@@ -81,7 +105,7 @@ void Bacterium::advance(int phase)
                                                              << mapToScene(30, -50));
 
     for (QGraphicsItem *item : dangerMice) {
-        if (!dynamic_cast<Bacterium*>(item) && !dynamic_cast<Predator*>(item))
+        if (!dynamic_cast<Predator*>(item))
         {
             QLineF lineToMouse(QPointF(0, 0), mapFromItem(item, 0, 0));
             qreal angleToMouse = std::atan2(lineToMouse.dy(), lineToMouse.dx());
@@ -96,26 +120,8 @@ void Bacterium::advance(int phase)
             }
             if (collidesWithItem(item)) {
                 // Remove the item from the scene
-                delete item;
-                foodCount++;
-            }
+                scene()->removeItem(item);
 
-            if (foodCount == 3) {
-                int randomNumber = QRandomGenerator::global()->bounded(101);
-                if (randomNumber <= 100) {
-                    // Создаем новую бактерию
-                    Predator *newPredator = new Predator();
-                    newPredator->setPos(pos());
-                    scene()->addItem(newPredator);
-                }
-                else {
-                    Bacterium *newBacterium = new Bacterium();
-                    newBacterium->setPos(pos());
-                    scene()->addItem(newBacterium);
-                }
-
-                // Сбрасываем счетчик съеденной еды
-                foodCount = 0;
             }
         }
         else {

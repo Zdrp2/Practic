@@ -25,6 +25,8 @@ void MainWindow::on_pushButton_clicked()
     int BactCount = ui->spinBox->value();
     QRectF sceneRect = scene->sceneRect();
 
+    scene->clear();
+
     for (int i = 0; i < BactCount; ++i) {
         bacterium = new Bacterium;
         qreal x = QRandomGenerator::global()->bounded(sceneRect.width());
