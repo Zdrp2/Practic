@@ -12,11 +12,12 @@ static qreal normalizeAngle(qreal angle)
     return angle;
 }
 
-Bacterium::Bacterium() : color(QRandomGenerator::global()->bounded(256),
+Bacterium::Bacterium(int c, int s) : color(QRandomGenerator::global()->bounded(256),
             QRandomGenerator::global()->bounded(256),
             QRandomGenerator::global()->bounded(256))
 {
     setRotation(QRandomGenerator::global()->bounded(360 * 16));
+    chance = c;
 }
 
 QRectF Bacterium::boundingRect() const
@@ -47,7 +48,7 @@ void Bacterium::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 
 void Bacterium::advance(int phase)
 {
-    if (!phase)
+    if (!phase || !isEnabled())
         return;
 
     //! [4]
@@ -75,12 +76,12 @@ void Bacterium::advance(int phase)
 
     // Try not to crash with any other mice
     //! [7]
-    const QList<QGraphicsItem *> dangerMice = scene()->items(QPolygonF()
+    const QList<QGraphicsItem *> otherItems = scene()->items(QPolygonF()
                                                              << mapToScene(0, 0)
                                                              << mapToScene(-30, -50)
                                                              << mapToScene(30, -50));
 
-    for (QGraphicsItem *item : dangerMice) {
+    for (QGraphicsItem *item : otherItems) {
         if (!dynamic_cast<Bacterium*>(item) && !dynamic_cast<Predator*>(item))
         {
             QLineF lineToMouse(QPointF(0, 0), mapFromItem(item, 0, 0));
@@ -97,25 +98,45 @@ void Bacterium::advance(int phase)
             if (collidesWithItem(item)) {
                 // Remove the item from the scene
                 delete item;
+                //this->removeFromIndex();
                 foodCount++;
             }
 
             if (foodCount == 3) {
                 int randomNumber = QRandomGenerator::global()->bounded(101);
-                if (randomNumber <= 100) {
+                if (randomNumber < chance) {
                     // Создаем новую бактерию
                     Predator *newPredator = new Predator();
                     newPredator->setPos(pos());
                     scene()->addItem(newPredator);
                 }
                 else {
-                    Bacterium *newBacterium = new Bacterium();
+                    Bacterium *newBacterium = new Bacterium(chance, speed);
                     newBacterium->setPos(pos());
                     scene()->addItem(newBacterium);
                 }
 
                 // Сбрасываем счетчик съеденной еды
                 foodCount = 0;
+            }
+        }
+
+        else if (!dynamic_cast<Bacterium*>(item) && !dynamic_cast<Food*>(item))
+        {
+            QLineF lineToMouse(QPointF(0, 0), mapFromItem(item, 0, 0));
+            qreal angleToMouse = std::atan2(lineToMouse.dy(), lineToMouse.dx());
+            angleToMouse = normalizeAngle((Pi - angleToMouse) + Pi / 2);
+
+            if (angleToMouse >= 0 && angleToMouse < Pi / 2) {
+                // Rotate right
+                angle += 0.5;
+            } else if (angleToMouse <= TwoPi && angleToMouse > (TwoPi - Pi / 2)) {
+                // Rotate left
+                angle -= 0.5;
+            }
+            if (collidesWithItem(item)) {
+                // Remove the item from the scene
+                this->removeFromIndex();
             }
         }
         else {
@@ -136,7 +157,7 @@ void Bacterium::advance(int phase)
 
     // Add some random movement
     //! [10]
-    if (dangerMice.size() > 1 && QRandomGenerator::global()->bounded(10) == 0) {
+    if (otherItems.size() > 1 && QRandomGenerator::global()->bounded(10) == 0) {
         if (QRandomGenerator::global()->bounded(1))
             angle += QRandomGenerator::global()->bounded(1 / 500.0);
         else

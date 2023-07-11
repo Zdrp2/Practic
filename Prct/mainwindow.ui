@@ -27,10 +27,10 @@
    <widget class="QSlider" name="horizontalSlider">
     <property name="geometry">
      <rect>
-      <x>49</x>
-      <y>270</y>
-      <width>231</width>
-      <height>61</height>
+      <x>229</x>
+      <y>143</y>
+      <width>171</width>
+      <height>21</height>
      </rect>
     </property>
     <property name="minimum">
@@ -44,10 +44,13 @@
     </property>
    </widget>
    <widget class="QPushButton" name="pushButton_2">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>250</x>
-      <y>130</y>
+      <y>310</y>
       <width>83</width>
       <height>29</height>
      </rect>
@@ -59,37 +62,21 @@
    <widget class="QSpinBox" name="spinBox">
     <property name="geometry">
      <rect>
-      <x>270</x>
-      <y>0</y>
+      <x>230</x>
+      <y>10</y>
       <width>51</width>
       <height>41</height>
      </rect>
     </property>
     <property name="minimum">
      <number>1</number>
-    </property>
-   </widget>
-   <widget class="QSpinBox" name="spinBox_2">
-    <property name="geometry">
-     <rect>
-      <x>270</x>
-      <y>50</y>
-      <width>51</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="minimum">
-     <number>1</number>
-    </property>
-    <property name="maximum">
-     <number>5</number>
     </property>
    </widget>
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
       <x>21</x>
-      <y>11</y>
+      <y>21</y>
       <width>153</width>
       <height>20</height>
      </rect>
@@ -101,8 +88,8 @@
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>130</y>
+      <x>120</x>
+      <y>310</y>
       <width>83</width>
       <height>29</height>
      </rect>
@@ -114,14 +101,104 @@
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>21</x>
-      <y>47</y>
+      <x>20</x>
+      <y>130</y>
       <width>181</width>
       <height>41</height>
      </rect>
     </property>
     <property name="text">
      <string>Частота появления еды:</string>
+    </property>
+   </widget>
+   <widget class="QSpinBox" name="spinBox_2">
+    <property name="geometry">
+     <rect>
+      <x>229</x>
+      <y>69</y>
+      <width>51</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="minimum">
+     <number>0</number>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>80</y>
+      <width>171</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Количество хищников</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>21</x>
+      <y>187</y>
+      <width>181</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Шанс развития:</string>
+    </property>
+   </widget>
+   <widget class="QSlider" name="horizontalSlider_2">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>200</y>
+      <width>171</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="minimum">
+     <number>0</number>
+    </property>
+    <property name="maximum">
+     <number>100</number>
+    </property>
+    <property name="value">
+     <number>0</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QDial" name="dial">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>450</y>
+      <width>50</width>
+      <height>64</height>
+     </rect>
+    </property>
+    <property name="minimum">
+     <number>1</number>
+    </property>
+    <property name="maximum">
+     <number>100</number>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>250</y>
+      <width>63</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>TextLabel</string>
     </property>
    </widget>
   </widget>

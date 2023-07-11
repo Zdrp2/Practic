@@ -11,7 +11,7 @@
 class Bacterium : public QGraphicsEllipseItem
 {
 public:
-    Bacterium();
+    Bacterium(int chance, int speed);
 
     // QGraphicsItem interface
 public:
@@ -24,6 +24,7 @@ private:
     qreal angle = 0;
     qreal speed = 0;
     int foodCount = 0;
+    int chance;
     QColor color;
 
 };

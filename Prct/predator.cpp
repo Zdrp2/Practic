@@ -36,7 +36,7 @@ void Predator::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     // Установите кисть с градиентом в качестве фона
     QLinearGradient gradient(-5, -10, 5, 10);
     gradient.setColorAt(0, Qt::darkGray);
-    gradient.setColorAt(1, Qt::black);
+    gradient.setColorAt(1, Qt::red);
     painter->setBrush(gradient);
 
     // Нарисуйте эллипс с градиентным фоном
@@ -105,7 +105,7 @@ void Predator::advance(int phase)
                                                              << mapToScene(30, -50));
 
     for (QGraphicsItem *item : dangerMice) {
-        if (!dynamic_cast<Predator*>(item))
+        if (!dynamic_cast<Predator*>(item) && !dynamic_cast<Bacterium*>(item))
         {
             QLineF lineToMouse(QPointF(0, 0), mapFromItem(item, 0, 0));
             qreal angleToMouse = std::atan2(lineToMouse.dy(), lineToMouse.dx());
@@ -120,8 +120,21 @@ void Predator::advance(int phase)
             }
             if (collidesWithItem(item)) {
                 // Remove the item from the scene
-                scene()->removeItem(item);
+                delete item;
+            }
+        }
+        else if (!dynamic_cast<Predator*>(item))
+        {
+            QLineF lineToMouse(QPointF(0, 0), mapFromItem(item, 0, 0));
+            qreal angleToMouse = std::atan2(lineToMouse.dy(), lineToMouse.dx());
+            angleToMouse = normalizeAngle((Pi - angleToMouse) + Pi / 2);
 
+            if (angleToMouse >= 0 && angleToMouse < Pi / 2) {
+                // Rotate right
+                angle -= 0.5;
+            } else if (angleToMouse <= TwoPi && angleToMouse > (TwoPi - Pi / 2)) {
+                // Rotate left
+                angle += 0.5;
             }
         }
         else {

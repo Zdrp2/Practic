@@ -7,6 +7,7 @@
 #include <QGraphicsScene>
 
 #include "food.h"
+#include "bacterium.h"
 
 class Predator : public QGraphicsEllipseItem
 {

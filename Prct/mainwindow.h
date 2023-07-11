@@ -28,6 +28,7 @@ private slots:
 private:
     QGraphicsScene *scene;
     Bacterium *bacterium;
+    Predator *predator;
     Food* food;
     QTimer timer; // Объект таймера объявлен как член класса
     QTimer timerFood;

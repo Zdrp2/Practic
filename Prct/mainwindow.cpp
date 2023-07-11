@@ -11,6 +11,36 @@ MainWindow::MainWindow(QWidget *parent)
     ui->graphicsView->setScene(scene);
 
     connect(&timer, &QTimer::timeout, scene, &QGraphicsScene::advance);
+
+    ui->pushButton->setStyleSheet("QPushButton {"
+                          "background-color: #4CAF50;"
+                          "border-style: outset;"
+                          "border-width: 2px;"
+                          "border-color: beige;"
+                          "font: bold 14px;"
+                          "color: white;"
+                          "}"
+                          "QPushButton:hover {"
+                          "background-color: #45a049;"
+                          "}"
+                          "QPushButton:pressed {"
+                          "background-color: #2d703e;"
+                          "}");
+
+    ui->pushButton_2->setStyleSheet("QPushButton {"
+                          "background-color: red;"
+                          "border-style: outset;"
+                          "border-width: 2px;"
+                          "border-color: beige;"
+                          "font: bold 14px;"
+                          "color: white;"
+                          "}"
+                          "QPushButton:hover {"
+                          "background-color: darkred;"
+                          "}"
+                          "QPushButton:pressed {"
+                          "background-color: maroon;"
+                          "}");
 }
 
 MainWindow::~MainWindow()
@@ -21,18 +51,26 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_clicked()
 {
-    ui->pushButton->setEnabled(false);
-    int BactCount = ui->spinBox->value();
-    QRectF sceneRect = scene->sceneRect();
-
     scene->clear();
 
-    for (int i = 0; i < BactCount; ++i) {
-        bacterium = new Bacterium;
+    ui->pushButton->setEnabled(false);
+    ui->pushButton_2->setEnabled(true);
+
+    QRectF sceneRect = scene->sceneRect();
+
+    for (int i = 0; i < ui->spinBox->value(); ++i) {
+        bacterium = new Bacterium(ui->horizontalSlider_2->value(), 5);
         qreal x = QRandomGenerator::global()->bounded(sceneRect.width());
         qreal y = QRandomGenerator::global()->bounded(sceneRect.height());
         bacterium->setPos(sceneRect.x() + x, sceneRect.y() + y);
         scene->addItem(bacterium);
+    }
+    for (int i = 0; i < ui->spinBox_2->value(); ++i) {
+        predator = new Predator();
+        qreal x = QRandomGenerator::global()->bounded(sceneRect.width());
+        qreal y = QRandomGenerator::global()->bounded(sceneRect.height());
+        predator->setPos(sceneRect.x() + x, sceneRect.y() + y);
+        scene->addItem(predator);
     }
     food = new Food(scene);
     connect(&timerFood, &QTimer::timeout, food, &Food::createCircle);
@@ -43,9 +81,9 @@ void MainWindow::on_pushButton_clicked()
 
 void MainWindow::on_pushButton_2_clicked()
 {
-    scene->clear();
+    ui->pushButton->setEnabled(true);
+    ui->pushButton_2->setEnabled(false);
     timer.stop();
     timerFood.stop();
     disconnect(&timerFood, &QTimer::timeout, food, &Food::createCircle);
-    ui->pushButton->setEnabled(true);
 }
