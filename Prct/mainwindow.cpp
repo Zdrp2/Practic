@@ -7,10 +7,21 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    QPalette palette;
+    palette.setColor(QPalette::Window, QColor(250, 235, 215));
+    setPalette(palette);
+
+    setFixedSize(size());
+
+    ui->graphicsView->setFrameStyle(QFrame::Box);
+    ui->graphicsView->setLineWidth(1);
+    ui->graphicsView->setMidLineWidth(1);
+
     scene = new QGraphicsScene(0, 0, 645, 495,this);
     ui->graphicsView->setScene(scene);
 
     connect(&timer, &QTimer::timeout, scene, &QGraphicsScene::advance);
+
 
     ui->pushButton->setStyleSheet("QPushButton {"
                           "background-color: #4CAF50;"
@@ -56,17 +67,19 @@ void MainWindow::on_pushButton_clicked()
     ui->pushButton->setEnabled(false);
     ui->pushButton_2->setEnabled(true);
 
+    bool check = ui->checkBox->isChecked();
+
     QRectF sceneRect = scene->sceneRect();
 
     for (int i = 0; i < ui->spinBox->value(); ++i) {
-        bacterium = new Bacterium(ui->horizontalSlider_2->value(), 5);
+        bacterium = new Bacterium(ui->horizontalSlider_2->value(), 5, check);
         qreal x = QRandomGenerator::global()->bounded(sceneRect.width());
         qreal y = QRandomGenerator::global()->bounded(sceneRect.height());
         bacterium->setPos(sceneRect.x() + x, sceneRect.y() + y);
         scene->addItem(bacterium);
     }
     for (int i = 0; i < ui->spinBox_2->value(); ++i) {
-        predator = new Predator();
+        predator = new Predator(check);
         qreal x = QRandomGenerator::global()->bounded(sceneRect.width());
         qreal y = QRandomGenerator::global()->bounded(sceneRect.height());
         predator->setPos(sceneRect.x() + x, sceneRect.y() + y);
@@ -87,3 +100,11 @@ void MainWindow::on_pushButton_2_clicked()
     timerFood.stop();
     disconnect(&timerFood, &QTimer::timeout, food, &Food::createCircle);
 }
+
+
+void MainWindow::on_horizontalSlider_2_valueChanged(int value)
+{
+    QString labelText = QString::number(value) + "%";
+    ui->label_5->setText(labelText);
+}
+

@@ -3,18 +3,10 @@
 constexpr qreal Pi = M_PI;
 constexpr qreal TwoPi = 2 * M_PI;
 
-static qreal normalizeAngle(qreal angle)
-{
-    while (angle < 0)
-        angle += TwoPi;
-    while (angle > TwoPi)
-        angle -= TwoPi;
-    return angle;
-}
-
-Predator::Predator()
+Predator::Predator(bool ch)
 {
     setRotation(QRandomGenerator::global()->bounded(360 * 16));
+    reprod = ch;
 }
 
 QRectF Predator::boundingRect() const
@@ -33,137 +25,87 @@ QPainterPath Predator::shape() const
 
 void Predator::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    // Установите кисть с градиентом в качестве фона
+    // Кисть с градиентом в качестве фона
     QLinearGradient gradient(-5, -10, 5, 10);
     gradient.setColorAt(0, Qt::darkGray);
     gradient.setColorAt(1, Qt::red);
     painter->setBrush(gradient);
 
-    // Нарисуйте эллипс с градиентным фоном
+    // Эллипс с градиентным фоном
     painter->drawEllipse(-5, -10, 10, 20);
 
-    // Нарисуйте глаза
+    // Глаза
     painter->setBrush(Qt::white);
     painter->drawEllipse(-3, -8, 2, 4);
     painter->drawEllipse(1, -8, 2, 4);
 
-    // Нарисуйте зубы
+    // Зубы
     painter->setBrush(Qt::white);
     painter->drawPolygon(QPolygonF() << QPointF(-2, 0) << QPointF(2, 0) << QPointF(0, -5));
 
-    // Нарисуйте рога
+    // Рога
     painter->setPen(Qt::NoPen);
     painter->setBrush(Qt::darkGray);
     painter->drawEllipse(-8, -18, 3, 8);
     painter->drawEllipse(5, -18, 3, 8);
 
-    // Рисуем усики
+    // Усики
     painter->setPen(Qt::black);
     painter->setBrush(Qt::NoBrush);
     painter->drawLine(0, -10, -5, -15);
     painter->drawLine(0, -10, 5, -15);
 }
 
-void Predator::setChance(int c)
-{
-    chance = c;
-}
-
-
 void Predator::advance(int phase)
 {
     if (!phase)
         return;
-    //! [4]
-    // Don't move too far away
-    //! [5]
-    QLineF lineToCenter(QPointF(0, 0), mapFromScene(322, 247));
-    if (lineToCenter.length() > 150) {
-        qreal angleToCenter = std::atan2(lineToCenter.dy(), lineToCenter.dx());
-        angleToCenter = normalizeAngle((Pi - angleToCenter) + Pi / 2);
 
-        if (angleToCenter < Pi && angleToCenter > Pi / 4) {
-            // Rotate left
-            angle += (angle < -Pi / 2) ? 0.25 : -0.25;
-        } else if (angleToCenter >= Pi && angleToCenter < (Pi + Pi / 2 + Pi / 4)) {
-            // Rotate right
-            angle += (angle < Pi / 2) ? 0.25 : -0.25;
-        }
-    } else if (::sin(angle) < 0) {
-        angle += 0.25;
-    } else if (::sin(angle) > 0) {
-        angle -= 0.25;
-        //! [5] //! [6]
-    }
-    //! [6]
+    controlCenter();
 
-    // Try not to crash with any other mice
-    //! [7]
-    const QList<QGraphicsItem *> dangerMice = scene()->items(QPolygonF()
+    const QList<QGraphicsItem *> othersIt = scene()->items(QPolygonF()
                                                              << mapToScene(0, 0)
                                                              << mapToScene(-30, -50)
                                                              << mapToScene(30, -50));
 
-    for (QGraphicsItem *item : dangerMice) {
+    for (QGraphicsItem *item : othersIt) {
         if (!dynamic_cast<Predator*>(item) && !dynamic_cast<Bacterium*>(item))
         {
-            QLineF lineToMouse(QPointF(0, 0), mapFromItem(item, 0, 0));
-            qreal angleToMouse = std::atan2(lineToMouse.dy(), lineToMouse.dx());
-            angleToMouse = normalizeAngle((Pi - angleToMouse) + Pi / 2);
+            hunt(item);
 
-            if (angleToMouse >= 0 && angleToMouse < Pi / 2) {
-                // Rotate right
-                angle -= 0.5;
-            } else if (angleToMouse <= TwoPi && angleToMouse > (TwoPi - Pi / 2)) {
-                // Rotate left
-                angle += 0.5;
-            }
             if (collidesWithItem(item)) {
-                // Remove the item from the scene
-                delete item;
+                // Удалить съеденный объект со сцены
+                scene()->removeItem(item);
+
+                foodCount++;
+            }
+            if (reprod) {
+                if (foodCount == 5) {
+                    // Создаем нового хищника
+                    Predator *newPredator = new Predator(reprod);
+                    newPredator->setPos(pos());
+                    scene()->addItem(newPredator);
+
+                    foodCount = 0;
+                }
             }
         }
         else if (!dynamic_cast<Predator*>(item))
         {
-            QLineF lineToMouse(QPointF(0, 0), mapFromItem(item, 0, 0));
-            qreal angleToMouse = std::atan2(lineToMouse.dy(), lineToMouse.dx());
-            angleToMouse = normalizeAngle((Pi - angleToMouse) + Pi / 2);
-
-            if (angleToMouse >= 0 && angleToMouse < Pi / 2) {
-                // Rotate right
-                angle -= 0.5;
-            } else if (angleToMouse <= TwoPi && angleToMouse > (TwoPi - Pi / 2)) {
-                // Rotate left
-                angle += 0.5;
-            }
+            hunt(item);
         }
         else {
-            QLineF lineToMouse(QPointF(0, 0), mapFromItem(item, 0, 0));
-            qreal angleToMouse = std::atan2(lineToMouse.dy(), lineToMouse.dx());
-            angleToMouse = normalizeAngle((Pi - angleToMouse) + Pi / 2);
-
-            if (angleToMouse >= 0 && angleToMouse < Pi / 2) {
-                // Rotate right
-                angle += 0.5;
-            } else if (angleToMouse <= TwoPi && angleToMouse > (TwoPi - Pi / 2)) {
-                // Rotate left
-                angle -= 0.5;
-            }
+            escape(item);
         }
     }
-    //! [9]
 
-    // Add some random movement
-    //! [10]
-    if (dangerMice.size() > 1 && QRandomGenerator::global()->bounded(10) == 0) {
+    if (othersIt.size() > 1 && QRandomGenerator::global()->bounded(10) == 0) {
         if (QRandomGenerator::global()->bounded(1))
             angle += QRandomGenerator::global()->bounded(1 / 500.0);
         else
             angle -= QRandomGenerator::global()->bounded(1 / 500.0);
     }
-    //! [10]
 
-    //! [11]
     speed += (-50 + QRandomGenerator::global()->bounded(100)) / 100.0;
 
     qreal dx = ::sin(angle) * 10;
@@ -171,23 +113,6 @@ void Predator::advance(int phase)
     setRotation(rotation() + dx);
     setPos(mapToParent(0, -(3 + sin(speed) * 3)));
 
-    // Ограничение перемещения по горизонтали
-    qreal xPos = pos().x();
-    qreal yPos = pos().y();
-
-    if (xPos < 0) {
-        setPos(0, pos().y());
-        angle = Pi;
-    } else if (xPos > scene()->width()) {
-        setPos(scene()->width(), pos().y());
-        angle = Pi;
-    }
-
-    if (yPos < 0) {
-        setPos(pos().x(), 0);
-        angle = Pi;
-    } else if (yPos > scene()->height()) {
-        setPos(pos().x(), scene()->height());
-        angle = Pi;
-    }
+    // Ограничение перемещения
+    controlBorder(pos().x(),pos().y());
 }

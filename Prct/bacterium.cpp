@@ -3,21 +3,35 @@
 constexpr qreal Pi = M_PI;
 constexpr qreal TwoPi = 2 * M_PI;
 
-static qreal normalizeAngle(qreal angle)
-{
-    while (angle < 0)
-        angle += TwoPi;
-    while (angle > TwoPi)
-        angle -= TwoPi;
-    return angle;
-}
-
-Bacterium::Bacterium(int c, int s) : color(QRandomGenerator::global()->bounded(256),
+// Конструктор
+Bacterium::Bacterium(int c, int s, bool ch) : color(QRandomGenerator::global()->bounded(256),
             QRandomGenerator::global()->bounded(256),
             QRandomGenerator::global()->bounded(256))
 {
     setRotation(QRandomGenerator::global()->bounded(360 * 16));
     chance = c;
+    check = ch;
+}
+
+void Bacterium::reproduction() {
+
+    if (foodCount == 3) {
+        int randomNumber = QRandomGenerator::global()->bounded(100);
+        if (randomNumber < chance) {
+            // Создаем новую бактерию
+            Predator *newPredator = new Predator(check);
+            newPredator->setPos(pos());
+            scene()->addItem(newPredator);
+        }
+        else {
+            Bacterium *newBacterium = new Bacterium(chance, speed, check);
+            newBacterium->setPos(pos());
+            scene()->addItem(newBacterium);
+        }
+
+        // Сбрасываем счетчик съеденной еды
+        foodCount = 0;
+    }
 }
 
 QRectF Bacterium::boundingRect() const
@@ -36,7 +50,6 @@ QPainterPath Bacterium::shape() const
 
 void Bacterium::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-
     painter->setPen(Qt::black);
     painter->setBrush(color);
     painter->drawEllipse(-5, -10, 10, 20);
@@ -48,34 +61,14 @@ void Bacterium::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 
 void Bacterium::advance(int phase)
 {
-    if (!phase || !isEnabled())
+    if (!phase)
         return;
 
-    //! [4]
-    // Don't move too far away
-    //! [5]
-    QLineF lineToCenter(QPointF(0, 0), mapFromScene(322, 247));
-    if (lineToCenter.length() > 150) {
-        qreal angleToCenter = std::atan2(lineToCenter.dy(), lineToCenter.dx());
-        angleToCenter = normalizeAngle((Pi - angleToCenter) + Pi / 2);
+    // Не отходите слишком далеко
+    controlCenter();
 
-        if (angleToCenter < Pi && angleToCenter > Pi / 4) {
-            // Rotate left
-            angle += (angle < -Pi / 2) ? 0.25 : -0.25;
-        } else if (angleToCenter >= Pi && angleToCenter < (Pi + Pi / 2 + Pi / 4)) {
-            // Rotate right
-            angle += (angle < Pi / 2) ? 0.25 : -0.25;
-        }
-    } else if (::sin(angle) < 0) {
-        angle += 0.25;
-    } else if (::sin(angle) > 0) {
-        angle -= 0.25;
-        //! [5] //! [6]
-    }
-    //! [6]
+    // Список объектов
 
-    // Try not to crash with any other mice
-    //! [7]
     const QList<QGraphicsItem *> otherItems = scene()->items(QPolygonF()
                                                              << mapToScene(0, 0)
                                                              << mapToScene(-30, -50)
@@ -84,88 +77,38 @@ void Bacterium::advance(int phase)
     for (QGraphicsItem *item : otherItems) {
         if (!dynamic_cast<Bacterium*>(item) && !dynamic_cast<Predator*>(item))
         {
-            QLineF lineToMouse(QPointF(0, 0), mapFromItem(item, 0, 0));
-            qreal angleToMouse = std::atan2(lineToMouse.dy(), lineToMouse.dx());
-            angleToMouse = normalizeAngle((Pi - angleToMouse) + Pi / 2);
+            hunt(item);
 
-            if (angleToMouse >= 0 && angleToMouse < Pi / 2) {
-                // Rotate right
-                angle -= 0.5;
-            } else if (angleToMouse <= TwoPi && angleToMouse > (TwoPi - Pi / 2)) {
-                // Rotate left
-                angle += 0.5;
-            }
             if (collidesWithItem(item)) {
-                // Remove the item from the scene
-                delete item;
-                //this->removeFromIndex();
+                scene()->removeItem(item);
                 foodCount++;
             }
 
-            if (foodCount == 3) {
-                int randomNumber = QRandomGenerator::global()->bounded(101);
-                if (randomNumber < chance) {
-                    // Создаем новую бактерию
-                    Predator *newPredator = new Predator();
-                    newPredator->setPos(pos());
-                    scene()->addItem(newPredator);
-                }
-                else {
-                    Bacterium *newBacterium = new Bacterium(chance, speed);
-                    newBacterium->setPos(pos());
-                    scene()->addItem(newBacterium);
-                }
-
-                // Сбрасываем счетчик съеденной еды
-                foodCount = 0;
-            }
+            reproduction();
         }
-
         else if (!dynamic_cast<Bacterium*>(item) && !dynamic_cast<Food*>(item))
         {
-            QLineF lineToMouse(QPointF(0, 0), mapFromItem(item, 0, 0));
-            qreal angleToMouse = std::atan2(lineToMouse.dy(), lineToMouse.dx());
-            angleToMouse = normalizeAngle((Pi - angleToMouse) + Pi / 2);
+            escape(item);
 
-            if (angleToMouse >= 0 && angleToMouse < Pi / 2) {
-                // Rotate right
-                angle += 0.5;
-            } else if (angleToMouse <= TwoPi && angleToMouse > (TwoPi - Pi / 2)) {
-                // Rotate left
-                angle -= 0.5;
-            }
             if (collidesWithItem(item)) {
                 // Remove the item from the scene
                 this->removeFromIndex();
             }
         }
         else {
-            QLineF lineToMouse(QPointF(0, 0), mapFromItem(item, 0, 0));
-            qreal angleToMouse = std::atan2(lineToMouse.dy(), lineToMouse.dx());
-            angleToMouse = normalizeAngle((Pi - angleToMouse) + Pi / 2);
-
-            if (angleToMouse >= 0 && angleToMouse < Pi / 2) {
-                // Rotate right
-                angle += 0.5;
-            } else if (angleToMouse <= TwoPi && angleToMouse > (TwoPi - Pi / 2)) {
-                // Rotate left
-                angle -= 0.5;
-            }
+            escape(item);
         }
     }
-    //! [9]
 
-    // Add some random movement
-    //! [10]
+    //Рандомное движение
     if (otherItems.size() > 1 && QRandomGenerator::global()->bounded(10) == 0) {
         if (QRandomGenerator::global()->bounded(1))
             angle += QRandomGenerator::global()->bounded(1 / 500.0);
         else
             angle -= QRandomGenerator::global()->bounded(1 / 500.0);
     }
-    //! [10]
 
-    //! [11]
+    //Смена скорости и перемещение
     speed += (-50 + QRandomGenerator::global()->bounded(100)) / 100.0;
 
     qreal dx = ::sin(angle) * 10;
@@ -173,23 +116,6 @@ void Bacterium::advance(int phase)
     setRotation(rotation() + dx);
     setPos(mapToParent(0, -(3 + sin(speed) * 3)));
 
-    // Ограничение перемещения по горизонтали
-    qreal xPos = pos().x();
-    qreal yPos = pos().y();
-
-    if (xPos < 0) {
-        setPos(0, pos().y());
-        angle = Pi;
-    } else if (xPos > scene()->width()) {
-        setPos(scene()->width(), pos().y());
-        angle = Pi;
-    }
-
-    if (yPos < 0) {
-        setPos(pos().x(), 0);
-        angle = Pi;
-    } else if (yPos > scene()->height()) {
-        setPos(pos().x(), scene()->height());
-        angle = Pi;
-    }
+    // Ограничение перемещения
+    controlBorder(pos().x(),pos().y());
 }

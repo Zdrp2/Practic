@@ -25,6 +25,8 @@ private slots:
 
     void on_pushButton_2_clicked();
 
+    void on_horizontalSlider_2_valueChanged(int value);
+
 private:
     QGraphicsScene *scene;
     Bacterium *bacterium;

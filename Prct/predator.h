@@ -6,13 +6,14 @@
 #include <QPainter>
 #include <QGraphicsScene>
 
+#include "organism.h"
 #include "food.h"
 #include "bacterium.h"
 
-class Predator : public QGraphicsEllipseItem
+class Predator : public Organism
 {
 public:
-    Predator();
+    Predator(bool ch);
 
     // QGraphicsItem interface
 public:
@@ -20,12 +21,10 @@ public:
     QRectF boundingRect() const;
     QPainterPath shape() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    void setChance(int c);
 
 private:
-    qreal angle = 0;
     qreal speed = 0;
-    int chance = 0;
+    bool reprod;
 };
 
 #endif // BACTERIUM_H
